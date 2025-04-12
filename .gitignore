@@ -7,8 +7,10 @@
 *.rsuser
 *.suo
 *.user
+*.vcxproj.user
 *.userosscache
 *.sln.docstates
+*.filters
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -348,12 +350,10 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-/TranslucentFlyouts/Archieve
-/TranslucentFlyouts/Archive
 
 # Custom rules
 *.rar
 *.zip
 /OpenGlass/Archieve
 /Theme
-/OpenGlass/OpenGlass.vcxproj.filters
+/OpenGlass/OpenGlass.vcxproj.user

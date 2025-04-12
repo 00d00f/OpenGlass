@@ -9,11 +9,11 @@
 #include "dwmcoreProjection.hpp"
 #include "GeometryRecorder.hpp"
 #include "CaptionTextHandler.hpp"
+#include "ButtonGlowHandler.hpp"
 #include "GlassFramework.hpp"
-#include "GlassOptimizer.hpp"
+#include "GlassRenderer.hpp"
 #include "CustomMsstyleLoader.hpp"
 #include "ConfigurationFramework.hpp"
-#include <Windows.h>
 
 namespace OpenGlass
 {
@@ -257,7 +257,7 @@ void OpenGlass::OnSymbolDownloading(SymbolDownloaderStatus status, std::wstring_
 		}
 		case SymbolDownloaderStatus::Downloading:
 		{
-			auto percentIndex{ text.find(L" percent") };
+			auto percentIndex = text.find(L" percent");
 			if (percentIndex != text.npos)
 			{
 				std::wstring_view progressView{ &text[percentIndex] - 3, 4 };
@@ -288,8 +288,8 @@ void OpenGlass::OnSymbolDownloading(SymbolDownloaderStatus status, std::wstring_
 
 DWORD WINAPI OpenGlass::Initialize(PVOID)
 {
-	auto moduleReference{ wil::get_module_reference_for_thread() };
-	auto coCleanUp{ wil::CoInitializeEx() };
+	auto moduleReference = wil::get_module_reference_for_thread();
+	auto coCleanUp = wil::CoInitializeEx();
 
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	RETURN_IF_FAILED(SetThreadDescription(GetCurrentThread(), L"OpenGlass Initialization Thread"));
@@ -302,7 +302,7 @@ DWORD WINAPI OpenGlass::Initialize(PVOID)
 
 	if (os::IsOpenGlassUnsupported())
 	{
-		auto result{ 0 };
+		auto result = 0;
 		LOG_IF_FAILED(
 			TaskDialog(
 				nullptr,
@@ -322,7 +322,7 @@ DWORD WINAPI OpenGlass::Initialize(PVOID)
 	}
 
 	{
-		auto indicator{ std::make_unique<CDownloadingProgressIndicator>() };
+		auto indicator = std::make_unique<CDownloadingProgressIndicator>();
 		indicator->SetProgressTotalValue(200, false);
 		g_indicator = indicator.get();
 
@@ -421,9 +421,10 @@ do_dwmcore_symbol_parsing:
 	
 	ConfigurationFramework::Unload();
 	GlassFramework::Startup();
+	GlassRenderer::Startup();
 	CaptionTextHandler::Startup();
+	ButtonGlowHandler::Startup();
 	GeometryRecorder::Startup();
-	GlassOptimizer::Startup();
 	CustomMsstyleLoader::Startup();
 	ConfigurationFramework::Load();
 
@@ -515,9 +516,10 @@ void OpenGlass::Shutdown()
 	debugDevice->DisableDebugCounters();
 #endif // _DEBUG
 
-	GlassOptimizer::Shutdown();
 	GeometryRecorder::Shutdown();
 	CaptionTextHandler::Shutdown();
+	ButtonGlowHandler::Shutdown();
+	GlassRenderer::Shutdown();
 	GlassFramework::Shutdown();
 	CustomMsstyleLoader::Shutdown();
 

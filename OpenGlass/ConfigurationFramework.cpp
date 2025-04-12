@@ -1,10 +1,9 @@
 ﻿#include "pch.h"
 #include "ConfigurationFramework.hpp"
-#include "GlassOptimizer.hpp"
-#include "BackdropManager.hpp"
 #include "CaptionTextHandler.hpp"
+#include "ButtonGlowHandler.hpp"
 #include "GlassFramework.hpp"
-#include "BackdropFactory.hpp"
+#include "GlassRenderer.hpp"
 #include "CustomMsstyleLoader.hpp"
 #include "ServiceApi.hpp"
 
@@ -17,11 +16,11 @@ namespace OpenGlass::ConfigurationFramework
 
 void ConfigurationFramework::Update(UpdateType type)
 {
-	GlassOptimizer::UpdateConfiguration(type);
-	BackdropFactory::UpdateConfiguration(type);
 	GlassFramework::UpdateConfiguration(type);
+	GlassRenderer::UpdateConfiguration(type);
 	CaptionTextHandler::UpdateConfiguration(type);
 	CustomMsstyleLoader::UpdateConfiguration(type);
+	ButtonGlowHandler::UpdateConfiguration(type);
 	DwmFlush();
 }
 

@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "framework.hpp"
 #include "cpprt.hpp"
-#include "winrt.hpp"
 #include "Utils.hpp"
 #include "HookHelper.hpp"
+#include "OSHelper.hpp"
 
 namespace OpenGlass::dwmcore
 {
@@ -12,13 +12,13 @@ namespace OpenGlass::dwmcore
 	template <typename T>
 	FORCEINLINE T GetAddressFromSymbolMap(std::string_view functionName)
 	{
-		auto it{ g_symbolMap.find(std::string{ functionName }) };
+		auto it = g_symbolMap.find(std::string{ functionName });
 		return it != g_symbolMap.end() ? Utils::cast_pointer<T>(it->second) : nullptr;
 	}
 	template <typename T>
 	FORCEINLINE void GetAddressFromSymbolMap(std::string_view functionName, T& target)
 	{
-		auto it{ g_symbolMap.find(std::string{ functionName }) };
+		auto it = g_symbolMap.find(std::string{ functionName });
 		if (it != g_symbolMap.end()) [[likely]]
 		{
 			target = Utils::cast_pointer<T>(it->second);
@@ -31,115 +31,6 @@ namespace OpenGlass::dwmcore
 #endif // _DEBUG
 	}
 
-	/*namespace FastRegion
-	{
-		namespace Internal
-		{
-			struct CRgnData
-			{
-				HRESULT STDMETHODCALLTYPE Offset(int x, int y)
-				{
-					DEFINE_INVOKER(FastRegion::Internal::CRgnData::Offset);
-					return INVOKE_MEMBERFUNCTION(x, y);
-				}
-				bool STDMETHODCALLTYPE IsEqualTo(const CRgnData& data)
-				{
-					DEFINE_INVOKER(FastRegion::Internal::CRgnData::IsEqualTo);
-					return INVOKE_MEMBERFUNCTION(data);
-				}
-			};
-		};
-		struct CRegion
-		{
-			PVOID m_reserved[10];
-			
-			Internal::CRgnData* GetRgnData() const
-			{
-				return reinterpret_cast<Internal::CRgnData* const*>(this)[0];
-			}
-			HRESULT STDMETHODCALLTYPE Union(const CRegion& region)
-			{
-				DEFINE_INVOKER(FastRegion::CRegion::Union);
-				return INVOKE_MEMBERFUNCTION(region);
-			}
-			HRESULT STDMETHODCALLTYPE Subtract(const CRegion& region)
-			{
-				DEFINE_INVOKER(FastRegion::CRegion::Subtract);
-				return INVOKE_MEMBERFUNCTION(region);
-			}
-			HRESULT STDMETHODCALLTYPE Intersect(const CRegion& region)
-			{
-				DEFINE_INVOKER(FastRegion::CRegion::Intersect);
-				return INVOKE_MEMBERFUNCTION(region);
-			}
-			bool STDMETHODCALLTYPE Contains(const CRegion& region)
-			{
-				DEFINE_INVOKER(FastRegion::CRegion::Contains);
-				return INVOKE_MEMBERFUNCTION(region);
-			}
-			// return false if empty
-			bool STDMETHODCALLTYPE GetBoundingRect(RECT& rect) const
-			{
-				DEFINE_INVOKER(FastRegion::CRegion::GetBoundingRect);
-				return INVOKE_MEMBERFUNCTION(rect);
-			}
-			size_t STDMETHODCALLTYPE GetRectangleCount() const
-			{
-				DEFINE_INVOKER(FastRegion::CRegion::GetRectangleCount);
-				return INVOKE_MEMBERFUNCTION();
-			}
-			void STDMETHODCALLTYPE FreeMemory()
-			{
-				DEFINE_INVOKER(FastRegion::CRegion::FreeMemory);
-				return INVOKE_MEMBERFUNCTION();
-			}
-			FastRegion::CRegion* STDMETHODCALLTYPE Constructor(const RECT& rect)
-			{
-				DEFINE_USER_INVOKER(FastRegion::CRegion::Constructor, "FastRegion::CRegion::CRegion");
-				return INVOKE_MEMBERFUNCTION(rect);
-			}
-
-			CRegion() = delete;
-			CRegion(const RECT& rect) { Constructor(rect); }
-			~CRegion() { FastRegion::CRegion::FreeMemory(); }
-		};
-	}
-	struct CRegion : FastRegion::CRegion
-	{
-		void STDMETHODCALLTYPE SetHRGN(HRGN region)
-		{
-			DEFINE_INVOKER(CRegion::SetHRGN);
-			return INVOKE_MEMBERFUNCTION(region);
-		}
-		HRESULT STDMETHODCALLTYPE CreateHRGN(HRGN* region) const
-		{
-			DEFINE_INVOKER(CRegion::CreateHRGN);
-			return INVOKE_MEMBERFUNCTION(region);
-		}
-		void STDMETHODCALLTYPE Copy(const CRegion& region)
-		{
-			DEFINE_INVOKER(CRegion::Copy);
-			return INVOKE_MEMBERFUNCTION(region);
-		}
-		size_t STDMETHODCALLTYPE GetRectangles(std::vector<RECT>* rectangles) const
-		{
-			DEFINE_INVOKER(CRegion::GetRectangles);
-			return INVOKE_MEMBERFUNCTION(rectangles);
-		}
-		std::vector<RECT> GetRectanglesVector() const
-		{
-			std::vector<RECT> rectangles{};
-			GetRectangles(&rectangles);
-			return rectangles;
-		}
-
-		CRegion(const RECT& rect) : FastRegion::CRegion{ rect } {}
-		CRegion(const CRegion& region) = delete;
-		CRegion(CRegion&& region) = delete;
-		CRegion() = delete;
-		const CRegion& operator=(const CRegion& region) = delete;
-	};*/
-
 	struct CResource : IUnknown
 	{
 		UINT STDMETHODCALLTYPE GetOwningProcessId()
@@ -150,21 +41,17 @@ namespace OpenGlass::dwmcore
 	};
 	struct CChannel
 	{
-		HRESULT STDMETHODCALLTYPE DuplicateSharedResource(HANDLE handle, UINT type, UINT* handleIndex)
-		{
-			DEFINE_INVOKER(CChannel::DuplicateSharedResource);
-			return INVOKE_MEMBERFUNCTION(handle, type, handleIndex);
-		}
 		HRESULT STDMETHODCALLTYPE MatrixTransformUpdate(UINT handleIndex, MilMatrix3x2D* matrix)
 		{
 			DEFINE_INVOKER(CChannel::MatrixTransformUpdate);
 			return INVOKE_MEMBERFUNCTION(handleIndex, matrix);
 		}
+		HRESULT STDMETHODCALLTYPE CombinedGeometryUpdate(UINT combinedGeometryHandleIndex, UINT combineMode, UINT geometryHandleIndex1, UINT geometryHandleIndex2)
+		{
+			DEFINE_INVOKER(CChannel::CombinedGeometryUpdate);
+			return INVOKE_MEMBERFUNCTION(combinedGeometryHandleIndex, combineMode, geometryHandleIndex1, geometryHandleIndex2);
+		}
 	};
-	namespace CCommonRegistryData
-	{
-		inline PULONGLONG m_backdropBlurCachingThrottleQPCTimeDelta{ nullptr };
-	}
 
 	struct CZOrderedRect
 	{
@@ -195,7 +82,7 @@ namespace OpenGlass::dwmcore
 			size_t size
 		)
 		{
-			auto memory{ HeapAlloc(OpenGlass::Utils::g_processHeap, 0, size) };
+			auto memory = HeapAlloc(OpenGlass::Utils::g_processHeap, 0, size);
 			THROW_LAST_ERROR_IF_NULL(memory);
 			return memory;
 		}
@@ -233,17 +120,17 @@ namespace OpenGlass::dwmcore
 		}
 		void Add(const T& object)
 		{
-			auto newSize{ this->size + 1u };
+			auto newSize = this->size + 1u;
 			if (newSize < this->size)
 			{
 				FAIL_FAST_HR(static_cast<HRESULT>(0x80070216ul));
 			}
 			else
 			{
-				auto bufferSize{ this->size * sizeof(T) };
+				auto bufferSize = this->size * sizeof(T);
 				if (newSize > this->capacity)
 				{
-					auto tmp{ std::unique_ptr<T[]>(this->data)};
+					auto tmp = std::unique_ptr<T[]>(this->data);
 
 					this->capacity *= 2;
 					this->data = new T[this->capacity];
@@ -294,7 +181,6 @@ namespace OpenGlass::dwmcore
 			return reinterpret_cast<CVisual* const*>(this)[7];
 		}
 	};
-	struct CWindowBackgroundTreatment : CResource {};
 	struct CVisual : CResource
 	{
 		HRESULT STDMETHODCALLTYPE GetVisualTree(CVisualTree** visualTree, bool value) const
@@ -318,30 +204,185 @@ namespace OpenGlass::dwmcore
 			return INVOKE_MEMBERFUNCTION();
 		}
 	};
-	struct EffectInput : CResource {};
-	struct IDeviceTarget: CResource {};
-	struct ID2DContextOwner : CResource {};
+
+	typedef D2D1_MATRIX_5X4_F CMILMatrix;
+	struct CLegacyMilBrush : CResource {};
+	struct CSolidColorLegacyMilBrush : CLegacyMilBrush
+	{
+		const D2D1_COLOR_F& GetRealizedColor() const
+		{
+			return *reinterpret_cast<D2D1_COLOR_F*>(reinterpret_cast<ULONG_PTR>(this) + 88);
+		}
+	};
+
+	struct CTransform : CResource {};
+	struct CShape
+	{
+		virtual ~CShape() = default;
+		virtual UINT STDMETHODCALLTYPE GetType() const = 0;
+		virtual bool STDMETHODCALLTYPE IsEmpty() const = 0;
+		virtual HRESULT STDMETHODCALLTYPE GetD2DGeometry(const CMILMatrix* matrix, ID2D1Geometry** geometry) const = 0;
+		virtual HRESULT STDMETHODCALLTYPE GetTightBounds(D2D1_RECT_F* lprc, const CMILMatrix* matrix) const = 0;
+		virtual bool STDMETHODCALLTYPE IsRectangles(UINT* count) const = 0;
+		virtual bool STDMETHODCALLTYPE GetRectangles(D2D1_RECT_F* buffer, UINT count) const = 0;
+		virtual HRESULT STDMETHODCALLTYPE GetUnOccludedWorldShape(const D2D1_RECT_F* bounds, const CMILMatrix& matrix, CShape** shape) const = 0;
+	};
+	struct CShapePtr
+	{
+		CShape* ptr;
+		bool notRef;
+
+		CShape* operator->()
+		{
+			return ptr;
+		}
+		operator bool()
+		{
+			return ptr != nullptr;
+		}
+		void Release()
+		{
+			if (notRef && ptr)
+			{
+				(**reinterpret_cast<void(***)(CShape*, bool)>(ptr))(ptr, true);
+			}
+
+			ptr = nullptr;
+			notRef = false;
+		}
+		~CShapePtr()
+		{
+			Release();
+		}
+	};
+	struct CGeometry : CResource 
+	{
+		HRESULT STDMETHODCALLTYPE GetShapeData(const D2D1_SIZE_F* size, CShapePtr* shape)
+		{
+			DEFINE_INVOKER(CGeometry::GetShapeData);
+			return INVOKE_MEMBERFUNCTION(size, shape);
+		}
+	};
+	struct CGeometry2D : CGeometry {};
+	struct CImageSource : CResource {};
+	struct CDrawingContext;
+	struct IDrawingContext
+	{
+		virtual HRESULT STDMETHODCALLTYPE Clear(const D2D1_COLOR_F& color) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawRectangle(const D2D1_RECT_F& lprc, CLegacyMilBrush* brush, CResource* resource) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawSolidRectangle(const D2D1_RECT_F& lprc, const D2D1_COLOR_F& color) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawImage(CResource* image, const D2D1_RECT_F* lprc, CResource* resource) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawGeometry(CLegacyMilBrush* brush, CGeometry* geometry) = 0;
+		virtual HRESULT STDMETHODCALLTYPE TileImage(CResource* image, D2D1_RECT_F& lprc, D2D1_POINT_2F& point, float) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawBitmap(CResource* bitmap) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawInk(ID2D1Ink* ink, const D2D1_COLOR_F& color, ID2D1InkStyle* inkStyle) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawGenericInk(struct IDCompositionDirectInkWetStrokePartner*, bool) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawYCbCrBitmap(CResource*, CResource*, D2D1_YCBCR_CHROMA_SUBSAMPLING) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawMesh2D(CGeometry2D* geometry, CImageSource* imageSource) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DrawVisual(CVisual* visual) = 0;
+		virtual HRESULT STDMETHODCALLTYPE Pop() = 0;
+		virtual HRESULT STDMETHODCALLTYPE PushTransform(CTransform* transfrom) = 0;
+		virtual HRESULT STDMETHODCALLTYPE ApplyRenderState() = 0;
+
+		CDrawingContext* GetDrawingContext() const
+		{
+			CDrawingContext* value{ nullptr };
+
+			if (os::buildNumber < os::build_w10_2004)
+			{
+				value = reinterpret_cast<CDrawingContext*>(reinterpret_cast<ULONG_PTR>(this));
+			}
+			else
+			{
+				value = reinterpret_cast<CDrawingContext*>(reinterpret_cast<ULONG_PTR>(this) - 16);
+			}
+
+			return value;
+		}
+	};
+
+	typedef DWORD DisplayId;
+	typedef UINT StereoContext;
+	struct IImageSource;
+	struct RenderTargetInfo;
+	// 1809 limited
+	/*struct ID2DContextOwner
+	{
+		virtual HRESULT STDMETHODCALLTYPE ImageSourceToD2DBitmap(IImageSource* imageSource, ID2D1Bitmap1** bitmap) = 0;
+		virtual bool STDMETHODCALLTYPE IsIn3DMode() = 0;
+		virtual void STDMETHODCALLTYPE GetWorldTransform3x2(D2D_MATRIX_3X2_F* transform) = 0;
+		virtual void STDMETHODCALLTYPE GetWorldTransform4x4(D2D_MATRIX_4X4_F* transform) = 0;
+		virtual UINT STDMETHODCALLTYPE GetCurrentZ() = 0;
+		virtual CVisual* STDMETHODCALLTYPE GetCurrentVisual() = 0;
+		virtual LUID STDMETHODCALLTYPE GetCurrentAdapterLuid() = 0;
+		virtual DisplayId STDMETHODCALLTYPE GetCurrentDisplayId() = 0;
+		virtual StereoContext STDMETHODCALLTYPE GetCurrentStereoContext() = 0;
+		virtual bool STDMETHODCALLTYPE GetCurrentHardwareProtection() = 0;
+		virtual RenderTargetInfo STDMETHODCALLTYPE GetCurrentRenderTargetInfo() = 0;
+	};*/
+	struct ID2DContextOwner
+	{
+		virtual bool STDMETHODCALLTYPE IsIn3DMode() = 0;
+		virtual void STDMETHODCALLTYPE GetWorldTransform3x2(D2D_MATRIX_3X2_F* transform) = 0;
+		virtual void STDMETHODCALLTYPE GetWorldTransform4x4(D2D_MATRIX_4X4_F* transform) = 0;
+		virtual UINT STDMETHODCALLTYPE GetCurrentZ() = 0;
+		virtual CVisual* STDMETHODCALLTYPE GetCurrentVisual() = 0;
+		virtual RenderTargetInfo STDMETHODCALLTYPE GetCurrentRenderTargetInfo() = 0;
+	};
+
 	struct CD2DContext : CResource
 	{
 		ID2D1DeviceContext* GetDeviceContext() const
 		{
 			return reinterpret_cast<ID2D1DeviceContext* const*>(this)[30];
 		}
-		HRESULT STDMETHODCALLTYPE FillEffect(
-			const ID2DContextOwner* contextOwner,
-			ID2D1Effect* effect,
-			const D2D_RECT_F* lprc,
-			const D2D_POINT_2F* point,
-			D2D1_INTERPOLATION_MODE interpolationMode,
-			D2D1_COMPOSITE_MODE compositeMode
-		)
+		void STDMETHODCALLTYPE GetClip(ID2DContextOwner* owner, D2D1_RECT_F* clipRect, D2D1_ANTIALIAS_MODE* mode) const
 		{
-			DEFINE_INVOKER(CD2DContext::FillEffect);
-			return INVOKE_MEMBERFUNCTION(contextOwner, effect, lprc, point, interpolationMode, compositeMode);
+			DEFINE_INVOKER(CD2DContext::GetClip);
+			return INVOKE_MEMBERFUNCTION(owner, clipRect, mode);
 		}
 	};
-	struct CDrawingContext : CResource
+	struct IDeviceTarget;
+	struct IDeviceSurface
 	{
+		virtual D2D1_SIZE_U STDMETHODCALLTYPE GetSize() const = 0;
+		virtual DisplayId STDMETHODCALLTYPE GetDisplayId() const = 0;
+		virtual HRESULT STDMETHODCALLTYPE GetD2DBitmap(ID2D1Bitmap1** bitmap, bool ignoreAlpha) = 0;
+	};
+	struct IBitmapResource;
+	struct CDrawingContext
+	{
+		struct CDisableCPUClipScope
+		{
+			CDrawingContext* m_drawingContext;
+
+			HRESULT STDMETHODCALLTYPE Enter(CDrawingContext* drawingContext)
+			{
+				DEFINE_INVOKER(CDrawingContext::CDisableCPUClipScope::Enter);
+				return INVOKE_MEMBERFUNCTION(drawingContext);
+			}
+			~CDisableCPUClipScope()
+			{
+				DEFINE_CUSTOM_INVOKER(void(STDMETHODCALLTYPE CDisableCPUClipScope::*)(), "CDrawingContext::CDisableCPUClipScope::~CDisableCPUClipScope");
+				INVOKE_MEMBERFUNCTION();
+			}
+		};
+
+		IDeviceTarget* GetDeviceTarget() const
+		{
+			return reinterpret_cast<IDeviceTarget* const*>(this)[4];
+		}
+		HRESULT GetD2DBitmap(ID2D1Bitmap1** bitmap) const
+		{
+			auto deviceTarget = GetDeviceTarget();
+			auto deviceSurface = reinterpret_cast<IDeviceSurface*>(
+				reinterpret_cast<ULONG_PTR>(deviceTarget) +
+				*reinterpret_cast<int*>(reinterpret_cast<ULONG_PTR*>(deviceTarget)[1] + 16) +
+				8ull
+			);
+
+			return deviceSurface->GetD2DBitmap(bitmap, false);
+		}
 		CD2DContext* GetD2DContext() const
 		{
 			if (os::buildNumber < os::build_w10_2004)
@@ -350,28 +391,111 @@ namespace OpenGlass::dwmcore
 			}
 			return reinterpret_cast<CD2DContext*>(reinterpret_cast<ULONG_PTR const*>(this)[5] + 16);
 		}
-		ID2DContextOwner* GetD2DContextOwner() const
+		IDrawingContext* GetInterface() const
 		{
+			IDrawingContext* value{ nullptr };
+
 			if (os::buildNumber < os::build_w10_2004)
 			{
-				return reinterpret_cast<ID2DContextOwner* const*>(this)[8];
+				value = reinterpret_cast<IDrawingContext*>(reinterpret_cast<ULONG_PTR>(this));
 			}
-			return reinterpret_cast<ID2DContextOwner*>(reinterpret_cast<ULONG_PTR const>(this) + 24);
+			else
+			{
+				value = reinterpret_cast<IDrawingContext*>(reinterpret_cast<ULONG_PTR>(this) + 16);
+			}
+
+			return value;
 		}
-		bool STDMETHODCALLTYPE IsOccluded(const D2D1_RECT_F& lprc, int flag) const
+		ID2DContextOwner* GetD2DContextOwner() const
+		{
+			ID2DContextOwner* value{ nullptr };
+
+			if (os::buildNumber < os::build_w10_2004)
+			{
+				value = reinterpret_cast<ID2DContextOwner*>(reinterpret_cast<ULONG_PTR>(this) + 8);
+			}
+			else
+			{
+				value = reinterpret_cast<ID2DContextOwner*>(reinterpret_cast<ULONG_PTR>(this) + 24);
+			}
+
+			return value;
+		}
+		IUnknown* GetUnknown() const
+		{
+			IUnknown* value{ nullptr };
+
+			if (os::buildNumber < os::build_w10_2004)
+			{
+				value = reinterpret_cast<IUnknown*>(reinterpret_cast<ULONG_PTR>(this) + 16);
+			}
+			else
+			{
+				value = reinterpret_cast<IUnknown*>(reinterpret_cast<ULONG_PTR>(this));
+			}
+
+			return value;
+		}
+
+		bool STDMETHODCALLTYPE IsOccluded(const D2D1_RECT_F& lprc, int depth) const
 		{
 			DEFINE_INVOKER(CDrawingContext::IsOccluded);
-			return INVOKE_MEMBERFUNCTION(lprc, flag);
+			return INVOKE_MEMBERFUNCTION(lprc, depth);
+		}
+		HRESULT STDMETHODCALLTYPE GetWorldTransform(CMILMatrix* matrix) const
+		{
+			DEFINE_INVOKER(CDrawingContext::GetWorldTransform);
+			return INVOKE_MEMBERFUNCTION(matrix);
+		}
+		HRESULT STDMETHODCALLTYPE GetWorldTransform3x2(D2D1_MATRIX_3X2_F* matrix) const
+		{
+			DEFINE_INVOKER(CDrawingContext::GetWorldTransform3x2);
+			return INVOKE_MEMBERFUNCTION(matrix);
+		}
+		ULONG_PTR STDMETHODCALLTYPE CalcWorldSpaceClippedBounds(const D2D1_RECT_F& sourceRect, const D2D1_RECT_F* targetRect) const
+		{
+			DEFINE_INVOKER(CDrawingContext::CalcWorldSpaceClippedBounds);
+			return INVOKE_MEMBERFUNCTION(sourceRect, targetRect);
+		}
+		ULONG_PTR STDMETHODCALLTYPE CalcLocalSpaceClippedBounds(const D2D1_RECT_F& sourceRect, const D2D1_RECT_F* targetRect) const
+		{
+			DEFINE_INVOKER(CDrawingContext::CalcLocalSpaceClippedBounds);
+			return INVOKE_MEMBERFUNCTION(sourceRect, targetRect);
+		}
+		HRESULT STDMETHODCALLTYPE GetUnOccludedWorldShape(const CShape* shape, int depth, CShapePtr* worldShape) const
+		{
+			DEFINE_INVOKER(CDrawingContext::GetUnOccludedWorldShape);
+			return INVOKE_MEMBERFUNCTION(shape, depth, worldShape);
+		}
+		ULONG_PTR STDMETHODCALLTYPE GetClipBoundsWorld(D2D1_RECT_F* lprc) const
+		{
+			DEFINE_INVOKER(CDrawingContext::GetClipBoundsWorld);
+			return INVOKE_MEMBERFUNCTION(lprc);
+		}
+		HRESULT STDMETHODCALLTYPE FillShapeWithColor(const CShape* shape, const D2D1_COLOR_F* color)
+		{
+			DEFINE_INVOKER(CDrawingContext::FillShapeWithColor);
+			return INVOKE_MEMBERFUNCTION(shape, color);
+		}
+		HRESULT STDMETHODCALLTYPE FlushD2D()
+		{
+			DEFINE_INVOKER(CDrawingContext::FlushD2D);
+			return INVOKE_MEMBERFUNCTION();
 		}
 		CVisual* STDMETHODCALLTYPE GetCurrentVisual() const
 		{
 			DEFINE_INVOKER(CDrawingContext::GetCurrentVisual);
 			return INVOKE_MEMBERFUNCTION();
 		}
-		HRESULT STDMETHODCALLTYPE GetClipBoundsWorld(D2D1_RECT_F& lprc) const
+		bool  STDMETHODCALLTYPE IsInLayer() const
 		{
-			DEFINE_INVOKER(CDrawingContext::GetClipBoundsWorld);
-			return INVOKE_MEMBERFUNCTION(lprc);
+			DEFINE_INVOKER(CDrawingContext::IsInLayer);
+			return INVOKE_MEMBERFUNCTION();
+		}
+		bool  STDMETHODCALLTYPE IsNormalDesktopRender() const
+		{
+			DEFINE_INVOKER(CDrawingContext::IsNormalDesktopRender);
+			return INVOKE_MEMBERFUNCTION();
 		}
 	};
 	struct COcclusionContext : CResource
@@ -391,65 +515,16 @@ namespace OpenGlass::dwmcore
 
 			return visual;
 		}
-		HRESULT STDMETHODCALLTYPE PostSubgraph(CVisualTree* visualTree, bool* unknown)
-		{
-			DEFINE_INVOKER(COcclusionContext::PostSubgraph);
-			return INVOKE_MEMBERFUNCTION(visualTree, unknown);
-		}
 	};
-	struct CCustomBlur : CResource 
+	struct CDirtyRegion : COcclusionContext
 	{
-		ID2D1DeviceContext* GetDeviceContext() const
+		void STDMETHODCALLTYPE SetFullDirty()
 		{
-			return reinterpret_cast<ID2D1DeviceContext* const*>(this)[2];
-		}
-		ID2D1Effect* GetCropEffect() const
-		{
-			return reinterpret_cast<ID2D1Effect* const*>(this)[3];
-		}
-		ID2D1Effect* GetBorderEffect() const
-		{
-			return reinterpret_cast<ID2D1Effect* const*>(this)[4];
-		}
-		ID2D1Effect* GetScaleEffect() const
-		{
-			return reinterpret_cast<ID2D1Effect* const*>(this)[5];
-		}
-		ID2D1Effect* GetDirectionalBlurXEffect() const
-		{
-			return reinterpret_cast<ID2D1Effect* const*>(this)[6];
-		}
-		ID2D1Effect* GetDirectionalBlurYEffect() const
-		{
-			return reinterpret_cast<ID2D1Effect* const*>(this)[7];
-		}
-		void STDMETHODCALLTYPE Reset()
-		{
-			DEFINE_INVOKER(CCustomBlur::Reset);
+			DEFINE_INVOKER(CDirtyRegion::SetFullDirty);
 			return INVOKE_MEMBERFUNCTION();
 		}
-		static HRESULT STDMETHODCALLTYPE Create(ID2D1DeviceContext* deviceContext, CCustomBlur** customBlur)
-		{
-			DEFINE_INVOKER(CCustomBlur::Create);
-			return INVOKE_FUNCTION(deviceContext, customBlur);
-		}
-		static float STDMETHODCALLTYPE DetermineOutputScale(
-			float size,
-			float blurAmount,
-			D2D1_GAUSSIANBLUR_OPTIMIZATION optimization
-		)
-		{
-			DEFINE_INVOKER(CCustomBlur::DetermineOutputScale);
-			return INVOKE_FUNCTION(size, blurAmount, optimization);
-		}
 	};
-	struct CDrawListCache : CResource {};
-	struct CDrawListBrush : CResource {};
-	struct CBrush : CResource {};
-	struct CBrushRenderingGraph : CResource {};
-	struct CShape : CResource {};
 	struct CWindowOcclusionInfo : CResource {};
-	struct IBitmapResource : CResource {};
 	struct CWindowNode : CResource
 	{
 		HWND STDMETHODCALLTYPE GetHwnd() const
@@ -458,39 +533,71 @@ namespace OpenGlass::dwmcore
 			return INVOKE_MEMBERFUNCTION();
 		}
 	};
-	inline ULONGLONG GetCurrentFrameId()
+	struct CDrawListCache : CResource {};
+
+
+	FORCEINLINE ULONGLONG STDMETHODCALLTYPE GetCurrentFrameId()
 	{
 		DEFINE_INVOKER(GetCurrentFrameId);
 		return INVOKE_FUNCTION();
 	}
+	FORCEINLINE float STDMETHODCALLTYPE scRGBTosRGB(float channel)
+	{
+		DEFINE_INVOKER(scRGBTosRGB);
+		return INVOKE_FUNCTION(channel);
+	}
+	FORCEINLINE D2D1_COLOR_F STDMETHODCALLTYPE Convert_D2D1_COLOR_F_sRGB_To_D2D1_COLOR_F_scRGB(const D2D1_COLOR_F& color)
+	{
+		DEFINE_INVOKER(Convert_D2D1_COLOR_F_sRGB_To_D2D1_COLOR_F_scRGB);
+		return INVOKE_FUNCTION(color);
+	}
+	FORCEINLINE D2D1_COLOR_F STDMETHODCALLTYPE Convert_D2D1_COLOR_F_scRGB_To_D2D1_COLOR_F_sRGB(const D2D1_COLOR_F& color)
+	{
+		DEFINE_INVOKER(Convert_D2D1_COLOR_F_scRGB_To_D2D1_COLOR_F_sRGB);
+		return INVOKE_FUNCTION(color);
+	}
+	FORCEINLINE UINT32 STDMETHODCALLTYPE PixelAlign(float value, UINT mode = 0)
+	{
+		DEFINE_INVOKER(PixelAlign);
+		return INVOKE_FUNCTION(value, mode);
+	}
+
+	namespace CCommonRegistryData
+	{
+		inline PULONG m_dwOverlayTestMode{ nullptr };
+	}
 
 	inline bool OnSymbolParsing(std::string_view functionName, std::string_view fullyUnDecoratedFunctionName, const HookHelper::OffsetStorage& offset, const PSYMBOL_INFO /*originalSymInfo*/)
 	{
-		if (fullyUnDecoratedFunctionName == "CCommonRegistryData::m_backdropBlurCachingThrottleQPCTimeDelta")
+		if (fullyUnDecoratedFunctionName == "CCommonRegistryData::m_dwOverlayTestMode")
 		{
-			offset.To(g_moduleHandle, CCommonRegistryData::m_backdropBlurCachingThrottleQPCTimeDelta);
+			offset.To(g_moduleHandle, CCommonRegistryData::m_dwOverlayTestMode);
 		}
-
 		if (
-			fullyUnDecoratedFunctionName.starts_with("CVisual::") ||
 			fullyUnDecoratedFunctionName.starts_with("CArrayBasedCoverageSet::") ||
 			fullyUnDecoratedFunctionName.starts_with("CZOrderedRect::") ||
-			/*fullyUnDecoratedFunctionName.starts_with("FastRegion::CRegion::") ||
-			fullyUnDecoratedFunctionName.starts_with("FastRegion::Internal::CRgnData") ||
-			fullyUnDecoratedFunctionName.starts_with("CRegion::") ||*/
-			fullyUnDecoratedFunctionName.starts_with("CCustomBlur::") ||
 			fullyUnDecoratedFunctionName == "GetCurrentFrameId" ||
-			fullyUnDecoratedFunctionName == "CChannel::DuplicateSharedResource" ||
+			fullyUnDecoratedFunctionName == "scRGBTosRGB" ||
+			fullyUnDecoratedFunctionName == "PixelAlign" ||
+			fullyUnDecoratedFunctionName == "Convert_D2D1_COLOR_F_sRGB_To_D2D1_COLOR_F_scRGB" ||
+			fullyUnDecoratedFunctionName == "Convert_D2D1_COLOR_F_scRGB_To_D2D1_COLOR_F_sRGB" ||
 			fullyUnDecoratedFunctionName == "CChannel::MatrixTransformUpdate" ||
+			fullyUnDecoratedFunctionName == "CChannel::CombinedGeometryUpdate" ||
 			fullyUnDecoratedFunctionName == "CResource::GetOwningProcessId" ||
-			fullyUnDecoratedFunctionName == "COcclusionContext::PostSubgraph" ||
-			fullyUnDecoratedFunctionName == "CBlurRenderingGraph::DeterminePreScale" ||
-			fullyUnDecoratedFunctionName == "CD2DContext::FillEffect" ||
+			fullyUnDecoratedFunctionName == "CRenderData::TryDrawCommandAsDrawList" ||
+			fullyUnDecoratedFunctionName == "CGeometry::GetShapeData" ||
+			fullyUnDecoratedFunctionName == "CGeometry::~CGeometry" ||
+			fullyUnDecoratedFunctionName == "CDirtyRegion::SetFullDirty" ||
+			fullyUnDecoratedFunctionName == "CDirtyRegion::_Add" ||
+			fullyUnDecoratedFunctionName == "CVisual::GetHwnd" ||
+			fullyUnDecoratedFunctionName == "CD2DContext::GetClip" ||
+			fullyUnDecoratedFunctionName == "CSolidColorLegacyMilBrush::IsOfType" ||
 			(
 				fullyUnDecoratedFunctionName.starts_with("CDrawingContext::") &&
 				fullyUnDecoratedFunctionName != "CDrawingContext::IsOccluded"
-				) ||
-			functionName == "?IsOccluded@CDrawingContext@@QEBA_NAEBV?$TMilRect_@MUMilRectF@@UMil3DRectF@@UMilPointAndSizeF@@UNotNeeded@RectUniqueness@@@@H@Z"
+			) ||
+			functionName == "?IsOccluded@CDrawingContext@@QEBA_NAEBV?$TMilRect_@MUMilRectF@@UMil3DRectF@@UMilPointAndSizeF@@UNotNeeded@RectUniqueness@@@@H@Z" ||
+			functionName == "??_7CSolidColorLegacyMilBrush@@6B@"
 		)
 		{
 			g_symbolMap.insert_or_assign(

@@ -197,7 +197,7 @@ HRESULT STDMETHODCALLTYPE CaptionTextHandler::MyCText_SetSize(uDwm::CText* This,
 		return g_CText_SetSize_Org(This, size);
 	}
 
-	auto oldWidth{ This->GetWidth() };
+	auto oldWidth = This->GetWidth();
 	HRESULT hr{ g_CText_SetSize_Org(This, size) };
 
 	if (oldWidth != size->cx)
@@ -215,7 +215,7 @@ HRESULT STDMETHODCALLTYPE CaptionTextHandler::MyCMatrixTransformProxy_Update(str
 		matrix->DX -= static_cast<DOUBLE>(g_textGlowSize) * (g_textVisual->IsRTL() ? -1.f : 1.f);
 		if (g_centerCaption)
 		{
-			auto offset{ floor(static_cast<DOUBLE>(g_textVisual->GetWidth() - g_textWidth) / 2.) };
+			auto offset = floor(static_cast<DOUBLE>(g_textVisual->GetWidth() - g_textWidth) / 2.);
 			matrix->DX += g_textVisual->IsRTL() ? -offset : offset;
 		}
 		matrix->DY = static_cast<DOUBLE>(static_cast<LONG>(static_cast<DOUBLE>(g_textVisual->GetHeight() - g_textHeight) / 2. - 0.5));
@@ -230,7 +230,7 @@ HRESULT STDMETHODCALLTYPE CaptionTextHandler::MyCChannel_MatrixTransformUpdate(d
 		matrix->DX -= static_cast<DOUBLE>(g_textGlowSize) * (g_textVisual->IsRTL() ? -1.f : 1.f);
 		if (g_centerCaption)
 		{
-			auto offset{ floor(static_cast<DOUBLE>(g_textVisual->GetWidth() - g_textWidth) / 2.) };
+			auto offset = floor(static_cast<DOUBLE>(g_textVisual->GetWidth() - g_textWidth) / 2.);
 			matrix->DX += g_textVisual->IsRTL() ? -offset : offset;
 		}
 		matrix->DY = static_cast<DOUBLE>(static_cast<LONG>(static_cast<DOUBLE>(g_textVisual->GetHeight() - g_textHeight) / 2. - 0.5));
@@ -245,7 +245,7 @@ void CaptionTextHandler::UpdateConfiguration(ConfigurationFramework::UpdateType 
 	{
 		g_centerCaption = static_cast<bool>(ConfigurationFramework::DwmGetDwordFromHKCUAndHKLM(L"CenterCaption", FALSE));
 		g_textGlowSize = standardGlowSize;
-		auto glowSize{ ConfigurationFramework::DwmTryDwordFromHKCUAndHKLM(L"TextGlowSize") };
+		auto glowSize = ConfigurationFramework::DwmTryDwordFromHKCUAndHKLM(L"TextGlowSize");
 		if (!glowSize.has_value())
 		{
 			glowSize = ConfigurationFramework::DwmTryDwordFromHKCUAndHKLM(L"TextGlowMode");
@@ -299,9 +299,8 @@ HRESULT CaptionTextHandler::Startup()
 			);
 			RETURN_LAST_ERROR_IF_NULL(g_IWICImagingFactory2_CreateBitmapFromHBITMAP_Org);
 
-			HMODULE udwmModule{ GetModuleHandleW(L"uDwm.dll") };
-			g_DrawTextW_Org = reinterpret_cast<decltype(g_DrawTextW_Org)>(HookHelper::WriteIAT(udwmModule, "user32.dll", "DrawTextW", MyDrawTextW));
-			g_CreateBitmap_Org = reinterpret_cast<decltype(g_CreateBitmap_Org)>(HookHelper::WriteIAT(udwmModule, "gdi32.dll", "CreateBitmap", MyCreateBitmap));
+			g_DrawTextW_Org = reinterpret_cast<decltype(g_DrawTextW_Org)>(HookHelper::WriteIAT(uDwm::g_moduleHandle, "user32.dll", "DrawTextW", MyDrawTextW));
+			g_CreateBitmap_Org = reinterpret_cast<decltype(g_CreateBitmap_Org)>(HookHelper::WriteIAT(uDwm::g_moduleHandle, "gdi32.dll", "CreateBitmap", MyCreateBitmap));
 
 			HookHelper::Detours::Write([]()
 			{
@@ -348,14 +347,13 @@ void CaptionTextHandler::Shutdown()
 					g_IWICImagingFactory2_CreateBitmapFromHBITMAP_Org
 				);
 			}
-			HMODULE udwmModule{ GetModuleHandleW(L"uDwm.dll") };
 			if (g_DrawTextW_Org)
 			{
-				HookHelper::WriteIAT(udwmModule, "user32.dll", "DrawTextW", g_DrawTextW_Org);
+				HookHelper::WriteIAT(uDwm::g_moduleHandle, "user32.dll", "DrawTextW", g_DrawTextW_Org);
 			}
 			if (g_CreateBitmap_Org)
 			{
-				HookHelper::WriteIAT(udwmModule, "gdi32.dll", "CreateBitmap", g_CreateBitmap_Org);
+				HookHelper::WriteIAT(uDwm::g_moduleHandle, "gdi32.dll", "CreateBitmap", g_CreateBitmap_Org);
 			}
 
 			g_textVisual = nullptr;
